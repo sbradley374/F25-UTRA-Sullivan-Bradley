@@ -1,12 +1,19 @@
 import json
-from glob import glob
+import numpy as np
+
 from FOD.Predictor import Predictor
+from FOD.dataset import AutoFocusDataset
+ 
 
-with open('config.json', 'r') as f:
+with open('config.json') as f:
     config = json.load(f)
+np.random.seed(config['General']['seed'])
 
-# Run inference on selected training examples
-# TODO: Proper train/val/test splits needed
-input_images = glob('data/synthetic_data/noisy_512/*00.png')
-predictor = Predictor(config, input_images)
+list_data = config['Dataset']['paths']['list_datasets']
+autofocus_datasets_test = [
+    AutoFocusDataset(config, dataset_name, 'test') for dataset_name in list_data
+]
+
+test_image_paths = [p for ds in autofocus_datasets_test for p in ds.paths_images]
+predictor = Predictor(config, test_image_paths)
 predictor.run()
