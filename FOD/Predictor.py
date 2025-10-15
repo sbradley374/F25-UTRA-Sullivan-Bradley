@@ -33,13 +33,14 @@ class Predictor(object):
                     type        =   self.type,
                     patch_size  =   config['General']['patch_size'],
         )
-        path_model = os.path.join(config['General']['path_model'], 'FocusOnDepth_{}.p'.format(config['General']['model_timm']))
+        path_model = os.path.join(config['General']['path_model'], 'FocusOnDepth.p')
         self.model.load_state_dict(
             torch.load(path_model, map_location=self.device)['model_state_dict']
         )
         self.model.eval()
         self.transform_image = transforms.Compose([
             transforms.Resize((resize, resize)),
+            transforms.Grayscale(num_output_channels=3),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
         ])
@@ -54,15 +55,8 @@ class Predictor(object):
 
                 tensor_im = self.transform_image(pil_im).unsqueeze(0)
                 output_depth, output_segmentation = self.model(tensor_im)
-                output_depth = 1-output_depth
 
-                output_segmentation = transforms.ToPILImage()(output_segmentation.squeeze(0).argmax(dim=0).float()).resize(original_size, resample=Image.NEAREST)
                 output_depth = transforms.ToPILImage()(output_depth.squeeze(0).float()).resize(original_size, resample=Image.BICUBIC)
-
-                path_dir_segmentation = os.path.join(self.output_dir, 'segmentations')
-                path_dir_depths = os.path.join(self.output_dir, 'depths')
-                create_dir(path_dir_segmentation)
-                output_segmentation.save(os.path.join(path_dir_segmentation, os.path.basename(images)))
 
                 path_dir_depths = os.path.join(self.output_dir, 'depths')
                 create_dir(path_dir_depths)

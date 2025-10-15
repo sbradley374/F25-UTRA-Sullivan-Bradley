@@ -34,6 +34,7 @@ def get_transforms(config):
     im_size = config['Dataset']['transforms']['resize']
     transform_image = transforms.Compose([
         transforms.Resize((im_size, im_size)),
+        transforms.Grayscale(num_output_channels=3),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
     ])
@@ -43,6 +44,7 @@ def get_transforms(config):
         transforms.ToTensor()
     ])
     transform_seg = transforms.Compose([
+        transforms.Grayscale(num_output_channels=3),
         transforms.Resize((im_size, im_size), interpolation=transforms.InterpolationMode.NEAREST),
         ToMask(config['Dataset']['classes']),
     ])
